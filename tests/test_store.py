@@ -90,20 +90,68 @@ def test_no_log_file_is_created_when_nothing_is_flagged():
     assert not paths.today_log_path().exists()
 
 
-def test_log_appends_across_polls_on_one_handle():
+def test_a_lasting_connection_is_logged_once_not_every_poll():
+    """Re-logging every poll grew the file by megabytes an hour, all of it
+    the same connection repeated."""
     store = ConnectionStore()
-    for _ in range(3):
+    for _ in range(30):
         store.update([group(conn(port=6667, flagged=True, flag_reason="r"))])
     store.close()
     lines = paths.today_log_path().read_text(encoding="utf-8").strip().splitlines()
-    assert len(lines) == 3
+    assert len(lines) == 1
+
+
+def test_two_sockets_to_the_same_endpoint_log_one_entry():
+    """Same pid, same remote ip and port — one endpoint, however many
+    sockets are open to it."""
+    store = ConnectionStore()
+    store.update(
+        [
+            group(
+                conn(port=6667, flagged=True, flag_reason="r"),
+                conn(port=6667, flagged=True, flag_reason="r"),
+                conn(port=6667, flagged=True, flag_reason="r"),
+            )
+        ]
+    )
+    store.close()
+    lines = paths.today_log_path().read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 1
+
+
+def test_distinct_flagged_connections_are_each_logged():
+    store = ConnectionStore()
+    store.update(
+        [
+            group(
+                conn(port=6667, flagged=True, flag_reason="r"),
+                conn(port=4444, flagged=True, flag_reason="r"),
+            )
+        ]
+    )
+    store.close()
+    lines = paths.today_log_path().read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 2
+
+
+def test_a_connection_that_closed_and_reopened_is_logged_again():
+    store = ConnectionStore()
+    store.update([group(conn(port=6667, flagged=True, flag_reason="r"))])
+    store.update([])  # closed
+    store.update([group(conn(port=6667, flagged=True, flag_reason="r"))])
+    store.close()
+    lines = paths.today_log_path().read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 2
 
 
 def test_log_rolls_over_to_a_new_file_at_midnight():
     store = ConnectionStore()
-    flagged = conn(port=6667, flagged=True, flag_reason="r")
-    store._log([group(flagged)], datetime(2026, 1, 9, 23, 59, 59))
-    store._log([group(flagged)], datetime(2026, 1, 10, 0, 0, 1))
+    # Distinct connections: the same one is only ever logged once, so it
+    # could not demonstrate a rollover.
+    before = group(conn(port=6667, flagged=True, flag_reason="r"))
+    after = group(conn(port=4444, flagged=True, flag_reason="r"))
+    store._log([before], datetime(2026, 1, 9, 23, 59, 59))
+    store._log([after], datetime(2026, 1, 10, 0, 0, 1))
     store.close()
 
     assert paths.log_path_for(date(2026, 1, 9)).exists()

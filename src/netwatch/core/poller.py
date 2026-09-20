@@ -85,7 +85,9 @@ def snapshot(
             group.exe = exe
         group.connections.append(c)
 
-    return sorted(groups.values(), key=lambda g: (-len(g.connections), g.name.lower()))
+    # Sorted by name, not by connection count: counts change every poll, and
+    # ordering by them makes rows jump around under the user's cursor.
+    return sorted(groups.values(), key=lambda g: g.name.lower())
 
 
 class NetworkPoller(QThread):

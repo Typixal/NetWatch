@@ -64,6 +64,10 @@ class ConnectionStore:
     def __init__(self, firewall: FirewallManager | None = None) -> None:
         self._firewall = firewall
         self._prev: dict[tuple[int, str, int], Connection] = {}
+        #: Flagged connections already written, so a long-lived one is logged
+        #: once rather than on every poll. Without this the log grows by
+        #: megabytes an hour and says the same thing each time.
+        self._logged: set[tuple[int, str, int]] = set()
         self._log_file: TextIO | None = None
         self._log_day: date | None = None
 
@@ -82,35 +86,46 @@ class ConnectionStore:
                 merged[conn.key] = conn
 
         self._prev = merged
+        # A connection that closed and later reopens is new again, and worth
+        # logging again — so forget keys that are no longer live.
+        self._logged &= merged.keys()
         self._log(groups, now)
         return groups
 
     # — flagged-connection log —
 
     def _log(self, groups: list[ProcessGroup], now: datetime) -> None:
-        entries = [
-            {
-                "ts": now.isoformat(timespec="seconds"),
-                "process": c.process_name,
-                "pid": c.pid,
-                "ip": c.remote_ip,
-                "domain": c.domain,
-                "port": c.remote_port,
-                "status": c.status,
-                "reason": c.flag_reason,
-            }
-            for g in groups
-            for c in g.connections
-            if c.flagged
-        ]
-        if not entries:
+        # Built as a dict so two sockets sharing an endpoint in the same poll
+        # collapse to one entry — checking against _logged alone would let
+        # both through, since the set is only updated as entries are written.
+        fresh: dict[tuple[int, str, int], Connection] = {}
+        for g in groups:
+            for c in g.connections:
+                if c.flagged and c.key not in self._logged:
+                    fresh.setdefault(c.key, c)
+        if not fresh:
             return
 
         handle = self._handle_for(now.date())
         if handle is None:
             return
-        for entry in entries:
-            handle.write(json.dumps(entry) + "\n")
+        for c in fresh.values():
+            handle.write(
+                json.dumps(
+                    {
+                        "ts": now.isoformat(timespec="seconds"),
+                        "process": c.process_name,
+                        "pid": c.pid,
+                        "ip": c.remote_ip,
+                        "domain": c.domain,
+                        "port": c.remote_port,
+                        "status": c.status,
+                        "reason": c.flag_reason,
+                    }
+                )
+                + "\n"
+            )
+            self._logged.add(c.key)
         handle.flush()
 
     def _handle_for(self, day: date):
