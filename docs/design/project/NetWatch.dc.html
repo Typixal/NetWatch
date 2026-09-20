@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-454392db-bc19-42ef-8d91-345a7bc4cfd9/styles.css">
+<script src="_ds/modernist-454392db-bc19-42ef-8d91-345a7bc4cfd9/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#0e0d0d;}
+a{color:#ec3013;text-decoration:none}
+a:hover{color:#f2694f}
+::selection{background:rgba(236,48,19,.35)}
+@keyframes nwpulse{0%,100%{opacity:1}50%{opacity:.25}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#0e0d0d;padding:28px;font-family:Archivo,system-ui,sans-serif;color:#f3f2f2;overflow-x:auto">
+<div style="width:100%;max-width:1400px;min-width:1180px;margin:0 auto;background:#161514;border:1px solid #383533;box-shadow:0 24px 60px rgba(0,0,0,.6);display:flex;flex-direction:column">
+
+<div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:#1d1b1a;border-bottom:2px solid #383533">
+<div style="display:flex;gap:8px">
+<div style="width:11px;height:11px;background:#5c5856"></div>
+<div style="width:11px;height:11px;background:#5c5856"></div>
+<div style="width:11px;height:11px;background:#5c5856"></div>
+</div>
+<div style="font:600 12px/1 Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#f3f2f2">NetWatch</div>
+<div style="font:400 12px/1 Archivo,sans-serif;color:#8d8886">per-app network monitor</div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:8px;font:400 11px/1 ui-monospace,Menlo,monospace;color:#8d8886">
+<span style="width:7px;height:7px;background:#ec3013;animation:nwpulse 2s ease-in-out infinite"></span>LIVE · 2s
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:2px solid #383533">
+<div style="padding:16px 20px;border-right:1px solid #2a2726">
+<div style="font:500 10px/1 Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8d8886">Active connections</div>
+<div style="font:600 34px/1.1 Archivo,sans-serif;margin-top:8px;letter-spacing:-.02em">47</div>
+</div>
+<div style="padding:16px 20px;border-right:1px solid #2a2726">
+<div style="font:500 10px/1 Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8d8886">Active processes</div>
+<div style="font:600 34px/1.1 Archivo,sans-serif;margin-top:8px;letter-spacing:-.02em">12</div>
+</div>
+<div style="padding:16px 20px;border-right:1px solid #2a2726">
+<div style="font:500 10px/1 Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8d8886">Blocked apps</div>
+<div style="font:600 34px/1.1 Archivo,sans-serif;margin-top:8px;letter-spacing:-.02em;color:#ec3013">2</div>
+</div>
+<div style="padding:16px 20px">
+<div style="font:500 10px/1 Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8d8886">Unknown destinations</div>
+<div style="font:600 34px/1.1 Archivo,sans-serif;margin-top:8px;letter-spacing:-.02em;color:#ec3013">5</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:320px minmax(0,1fr);min-height:660px">
+
+<aside style="border-right:2px solid #383533;display:flex;flex-direction:column;background:#131211">
+<div style="padding:12px 16px;border-bottom:1px solid #2a2726">
+<input placeholder="filter processes" style="width:100%;box-sizing:border-box;background:#0e0d0d;border:1px solid #383533;border-radius:0;color:#f3f2f2;font:400 13px/1 Archivo,sans-serif;padding:9px 10px;outline:none">
+</div>
+<div style="display:flex;gap:0;border-bottom:1px solid #2a2726">
+<button style="flex:1;background:#201e1d;border:none;border-right:1px solid #2a2726;color:#f3f2f2;font:600 10px/1 Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:9px 0;cursor:pointer">All</button>
+<button style="flex:1;background:none;border:none;border-right:1px solid #2a2726;color:#8d8886;font:600 10px/1 Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:9px 0;cursor:pointer" style-hover="color:#f3f2f2">Flagged</button>
+<button style="flex:1;background:none;border:none;color:#8d8886;font:600 10px/1 Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:9px 0;cursor:pointer" style-hover="color:#f3f2f2">Blocked</button>
+</div>
+<div style="flex:1;overflow:auto">
+<sc-for list="{{ procs }}" as="p" hint-placeholder-count="7">
+<div onClick="{{ p.select }}" style="display:grid;grid-template-columns:1fr auto;gap:10px 12px;padding:13px 16px;border-bottom:1px solid #2a2726;border-left:3px solid {{ p.mark }};background:{{ p.bg }};cursor:pointer" style-hover="background:#1d1b1a">
+<div style="min-width:0">
+<div style="display:flex;align-items:baseline;gap:8px">
+<div style="font:600 13px/1.2 Archivo,sans-serif;color:{{ p.nameColor }};text-decoration:{{ p.strike }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</div>
+<div style="font:400 10px/1 ui-monospace,Menlo,monospace;color:#6d6866">{{ p.pid }}</div>
+</div>
+<div style="font:400 11px/1 Archivo,sans-serif;color:{{ p.metaColor }};margin-top:5px">{{ p.meta }}</div>
+</div>
+<div style="grid-row:span 2;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px">
+<svg viewBox="0 0 96 26" preserveAspectRatio="none" style="width:96px;height:26px;display:block">
+<polyline points="{{ p.area }}" fill="{{ p.fill }}" stroke="none"></polyline>
+<polyline points="{{ p.points }}" fill="none" stroke="{{ p.stroke }}" stroke-width="1.5" vector-effect="non-scaling-stroke"></polyline>
+</svg>
+<div onClick="{{ p.toggle }}" title="block" style="width:34px;height:18px;background:{{ p.trackBg }};border:1px solid {{ p.trackBorder }};display:flex;align-items:center;justify-content:{{ p.knobSide }};padding:2px;box-sizing:border-box;cursor:pointer">
+<div style="width:12px;height:12px;background:{{ p.knobBg }}"></div>
+</div>
+</div>
+<div style="grid-column:1;font:400 10px/1 ui-monospace,Menlo,monospace;color:#6d6866">{{ p.rate }}</div>
+</div>
+</sc-for>
+</div>
+</aside>
+
+<main style="display:flex;flex-direction:column;min-width:0">
+<div style="display:flex;align-items:flex-start;gap:20px;padding:20px 24px;border-bottom:2px solid #383533">
+<div style="min-width:0">
+<div style="display:flex;align-items:center;gap:10px">
+<h1 style="margin:0;font:600 26px/1.1 Archivo,sans-serif;letter-spacing:-.02em">{{ sel.name }}</h1>
+<span style="font:500 10px/1 Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:5px 8px;white-space:nowrap;border:1px solid {{ sel.badgeBorder }};color:{{ sel.badgeColor }}">{{ sel.badge }}</span>
+</div>
+<div style="font:400 12px/1 ui-monospace,Menlo,monospace;color:#8d8886;margin-top:9px">pid {{ sel.pid }} · {{ sel.path }}</div>
+</div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+<span style="font:500 10px/1 Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8d8886">Block all traffic</span>
+<div onClick="{{ sel.toggle }}" style="width:56px;height:28px;background:{{ sel.trackBg }};border:1px solid {{ sel.trackBorder }};display:flex;align-items:center;justify-content:{{ sel.knobSide }};padding:3px;box-sizing:border-box;cursor:pointer">
+<div style="width:20px;height:20px;background:{{ sel.knobBg }}"></div>
+</div>
+</div>
+</div>
+
+<div style="padding:20px 24px;border-bottom:2px solid #383533">
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+<div style="font:500 10px/1 Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8d8886">Connections over time · last 60s</div>
+<div style="display:flex;gap:22px;font:400 11px/1 ui-monospace,Menlo,monospace;color:#8d8886">
+<span>peak {{ sel.peak }}</span><span>avg {{ sel.avg }}</span><span style="color:#f3f2f2">now {{ sel.now }}</span>
+</div>
+</div>
+<svg viewBox="0 0 1000 130" preserveAspectRatio="none" style="width:100%;height:130px;display:block;border-bottom:1px solid #383533">
+<line x1="0" y1="43" x2="1000" y2="43" stroke="#2a2726" stroke-width="1"></line>
+<line x1="0" y1="86" x2="1000" y2="86" stroke="#2a2726" stroke-width="1"></line>
+<polyline points="{{ sel.bigArea }}" fill="rgba(236,48,19,.16)" stroke="none"></polyline>
+<polyline points="{{ sel.bigPoints }}" fill="none" stroke="#ec3013" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+</svg>
+<div style="display:flex;justify-content:space-between;font:400 10px/1 ui-monospace,Menlo,monospace;color:#6d6866;margin-top:7px">
+<span>-60s</span><span>-45s</span><span>-30s</span><span>-15s</span><span>now</span>
+</div>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;min-width:0">
+<div style="display:grid;grid-template-columns:130px 1fr 80px 130px 110px;gap:16px;padding:12px 24px;border-bottom:1px solid #383533;font:500 10px/1 Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8d8886">
+<div>Remote IP</div><div>Domain</div><div>Port</div><div>Status</div><div style="text-align:right">Action</div>
+</div>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:130px 1fr 80px 130px 110px;gap:16px;align-items:center;padding:13px 24px;border-bottom:1px solid #2a2726;background:{{ r.bg }}">
+<div style="font:400 12px/1 ui-monospace,Menlo,monospace;color:{{ r.ipColor }}">{{ r.ip }}</div>
+<div style="font:400 13px/1 Archivo,sans-serif;color:{{ r.domColor }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.domain }}</div>
+<div style="font:400 12px/1 ui-monospace,Menlo,monospace;color:#8d8886">{{ r.port }}</div>
+<div style="display:flex;align-items:center;gap:7px">
+<span style="width:6px;height:6px;background:{{ r.dot }}"></span>
+<span style="font:400 11px/1 ui-monospace,Menlo,monospace;color:{{ r.statusColor }}">{{ r.status }}</span>
+</div>
+<div style="display:flex;justify-content:flex-end">
+<button onClick="{{ r.block }}" style="background:{{ r.btnBg }};border:1px solid {{ r.btnBorder }};border-radius:0;color:{{ r.btnColor }};font:600 10px/1 Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:8px 12px;cursor:pointer" style-hover="background:#ec3013;border-color:#ec3013;color:#f3f2f2">{{ r.btnLabel }}</button>
+</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-top:2px solid #383533;font:400 11px/1 ui-monospace,Menlo,monospace;color:#6d6866">
+<span>last refreshed 2s ago · auto-refresh every 2s</span>
+<span>47 connections across 12 processes</span>
+</div>
+</main>
+</div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const DATA = [
+  {name:'chrome.exe', pid:4821, conns:14, rate:'1.4 MB/s ↓ · 210 KB/s ↑', path:'/Applications/Google Chrome.app', flagged:false,
+   spark:[.3,.5,.4,.65,.8,.6,.55,.7,.9,.75,.6,.68,.82,.95,.7,.6,.72,.88,.8,.65,.7,.85,.78,.9],
+   rows:[['142.250.80.46','accounts.google.com',443,'established'],['216.58.214.110','fonts.googleapis.com',443,'time_wait'],['142.250.72.14','clients4.google.com',443,'established'],['34.120.208.123','update.googleapis.com',443,'established'],['151.101.1.69','cdn.jsdelivr.net',443,'close_wait']]},
+  {name:'discord.exe', pid:6204, conns:3, rate:'320 KB/s ↓ · 88 KB/s ↑', path:'/Applications/Discord.app', flagged:false,
+   spark:[.4,.42,.38,.5,.55,.48,.6,.52,.45,.5,.62,.58,.5,.44,.48,.55,.6,.52,.46,.5,.58,.54,.5,.56],
+   rows:[['162.159.129.234','gateway.discord.gg',443,'established'],['162.159.135.232','cdn.discordapp.com',443,'established'],['162.159.138.232','media.discordapp.net',443,'time_wait']]},
+  {name:'svchost.exe', pid:1192, conns:2, rate:'12 KB/s ↓ · 96 KB/s ↑', path:'C:\\Windows\\System32\\svchost.exe', flagged:true,
+   spark:[.1,.12,.08,.15,.6,.85,.4,.2,.15,.7,.9,.55,.2,.18,.12,.65,.95,.5,.22,.16,.12,.75,.88,.6],
+   rows:[['45.33.32.156','— unresolved —',8080,'established'],['185.199.108.7','— unresolved —',9001,'syn_sent']]},
+  {name:'slack.exe', pid:3344, conns:6, rate:'240 KB/s ↓ · 40 KB/s ↑', path:'/Applications/Slack.app', flagged:false,
+   spark:[.25,.3,.28,.35,.4,.38,.3,.32,.45,.4,.36,.3,.34,.42,.38,.3,.28,.36,.44,.4,.32,.3,.38,.35],
+   rows:[['99.86.28.66','wss-primary.slack.com',443,'established'],['3.233.153.10','edgeapi.slack.com',443,'established'],['52.85.132.44','a.slack-edge.com',443,'time_wait']]},
+  {name:'zoom.us', pid:5120, conns:4, rate:'2.8 MB/s ↓ · 1.9 MB/s ↑', path:'/Applications/zoom.us.app', flagged:false,
+   spark:[.5,.7,.85,.9,.95,.88,.92,.96,.9,.94,.88,.92,.98,.9,.86,.92,.95,.9,.88,.94,.9,.92,.96,.93],
+   rows:[['170.114.52.4','us05web.zoom.us',443,'established'],['170.114.10.19','rwcdn.zoom.us',8801,'established'],['206.247.16.8','zoomcdn.net',8801,'established']]},
+  {name:'spotify.exe', pid:8810, conns:0, rate:'no traffic', path:'/Applications/Spotify.app', flagged:false, blocked:true,
+   spark:[.3,.28,.22,.1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+   rows:[['35.186.224.25','apresolve.spotify.com',443,'blocked'],['104.199.65.9','spclient.wg.spotify.com',443,'blocked']]},
+  {name:'backupd', pid:902, conns:1, rate:'8 KB/s ↑', path:'/System/Library/CoreServices/backupd', flagged:false,
+   spark:[0,0,.05,.1,.08,0,0,.12,.2,.1,0,0,.06,.14,.1,0,0,.08,.16,.1,0,.04,.1,.06],
+   rows:[['17.253.144.10','time.apple.com',123,'established']]}
+];
+
+class Component extends DCLogic {
+  state = { sel: 2, blocked: { 'spotify.exe': true }, rowBlocked: {} };
+
+  spark(v, w, h, pad) {
+    const n = v.length, top = pad || 2;
+    return v.map((x, i) => (i / (n - 1) * w).toFixed(1) + ',' + (h - top - x * (h - top * 2)).toFixed(1)).join(' ');
+  }
+
+  renderVals() {
+    const st = this.state, blocked = st.blocked;
+    const accent = '#ec3013';
+    const procs = DATA.map((p, i) => {
+      const isSel = i === st.sel, off = !!blocked[p.name];
+      return {
+        name: p.name, pid: 'pid ' + p.pid, rate: p.rate,
+        meta: off ? 'blocked' : p.conns + ' connections' + (p.flagged ? ' · unknown destination' : ''),
+        metaColor: off ? '#8d8886' : (p.flagged ? accent : '#8d8886'),
+        nameColor: off ? '#6d6866' : '#f3f2f2',
+        strike: off ? 'line-through' : 'none',
+        bg: isSel ? '#201e1d' : 'transparent',
+        mark: isSel ? accent : 'transparent',
+        points: this.spark(p.spark, 96, 26),
+        area: this.spark(p.spark, 96, 26) + ' 96,26 0,26',
+        stroke: off ? '#5c5856' : (p.flagged ? accent : '#bab6b6'),
+        fill: off ? 'rgba(92,88,86,.14)' : (p.flagged ? 'rgba(236,48,19,.18)' : 'rgba(186,182,182,.12)'),
+        trackBg: off ? accent : '#0e0d0d',
+        trackBorder: off ? accent : '#4a4644',
+        knobBg: off ? '#f3f2f2' : '#6d6866',
+        knobSide: off ? 'flex-end' : 'flex-start',
+        select: () => this.setState({ sel: i }),
+        toggle: (e) => { e.stopPropagation(); this.setState(s => ({ blocked: Object.assign({}, s.blocked, { [p.name]: !s.blocked[p.name] }) })); }
+      };
+    });
+
+    const p = DATA[st.sel], off = !!blocked[p.name];
+    const vals = p.spark, peak = Math.max.apply(null, vals), avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const scale = v => Math.round(v * p.conns * 1.4 + (p.conns ? 1 : 0));
+    const sel = {
+      name: p.name, pid: p.pid, path: p.path,
+      badge: off ? 'Blocked' : (p.flagged ? 'Flagged · unknown destination' : 'Allowed'),
+      badgeColor: off || p.flagged ? accent : '#8d8886',
+      badgeBorder: off || p.flagged ? accent : '#4a4644',
+      peak: scale(peak), avg: scale(avg), now: scale(vals[vals.length - 1]),
+      bigPoints: this.spark(vals, 1000, 130, 6),
+      bigArea: this.spark(vals, 1000, 130, 6) + ' 1000,130 0,130',
+      trackBg: off ? accent : '#0e0d0d',
+      trackBorder: off ? accent : '#4a4644',
+      knobBg: off ? '#f3f2f2' : '#6d6866',
+      knobSide: off ? 'flex-end' : 'flex-start',
+      toggle: () => this.setState(s => ({ blocked: Object.assign({}, s.blocked, { [p.name]: !s.blocked[p.name] }) }))
+    };
+
+    const rows = p.rows.map((r, i) => {
+      const key = p.name + '|' + i;
+      const isBlocked = off || !!st.rowBlocked[key] || r[3] === 'blocked';
+      const unresolved = r[1].indexOf('unresolved') > -1;
+      return {
+        ip: r[0], domain: r[1], port: r[2],
+        status: isBlocked ? 'blocked' : r[3],
+        ipColor: unresolved ? accent : '#f3f2f2',
+        domColor: unresolved ? accent : (isBlocked ? '#6d6866' : '#bab6b6'),
+        statusColor: isBlocked ? accent : (r[3] === 'established' ? '#f3f2f2' : '#8d8886'),
+        dot: isBlocked ? accent : (r[3] === 'established' ? '#bab6b6' : '#5c5856'),
+        bg: unresolved ? 'rgba(236,48,19,.07)' : 'transparent',
+        btnLabel: isBlocked ? 'Unblock' : 'Block',
+        btnBg: isBlocked ? accent : 'transparent',
+        btnBorder: isBlocked ? accent : '#4a4644',
+        btnColor: isBlocked ? '#f3f2f2' : '#bab6b6',
+        block: () => this.setState(s => ({ rowBlocked: Object.assign({}, s.rowBlocked, { [key]: !s.rowBlocked[key] }) }))
+      };
+    });
+
+    return { procs, sel, rows };
+  }
+}
+
+</script>
+</body>
+</html>

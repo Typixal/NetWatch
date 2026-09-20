@@ -1,0 +1,31 @@
+# Python virtualenv + package cache — both live inside the project so nothing
+# lands in system Python or on C:
+.venv/
+.uv-cache/
+
+# Bytecode
+__pycache__/
+*.py[cod]
+
+# PyInstaller
+build/
+dist/
+*.spec.bak
+
+# Test / lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Logs and scratch
+*.log
+scratch/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+desktop.ini
