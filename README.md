@@ -43,9 +43,23 @@ uv run pytest
 uv run pyinstaller netwatch.spec
 ```
 
-Output: `dist\NetWatch.exe`. No installer, no registry entries beyond the
-firewall rules NetWatch writes (which it cleans up) and the optional
-run-on-startup key.
+Output: `dist\NetWatch.exe` (~36 MB). Move it wherever you like — it was
+never installed anywhere.
+
+## Uninstall
+
+NetWatch has no installer, so this is the counterpart to running it:
+
+```powershell
+uv run netwatch-uninstall --dry-run   # list what would go
+uv run netwatch-uninstall             # remove it
+```
+
+It removes the `NetWatch_block_*` firewall rules (asking for admin), the
+run-on-startup registry value, any NetWatch shortcut in the Startup folder,
+and `%LOCALAPPDATA%\NetWatch\`. It refuses to delete anything that isn't
+plausibly its own data directory, and touches nothing it didn't create.
+Deleting the exe is left to you.
 
 ## Layout
 
