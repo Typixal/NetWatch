@@ -1,64 +1,44 @@
-"""The custom title bar: window controls, brand, and the live indicator.
-
-The window is frameless, so this bar also provides dragging and the
-minimise/maximise/close buttons. The three squares on the left are the
-controls themselves rather than decoration.
-"""
-
-from __future__ import annotations
-
-from PyQt6.QtCore import (
-    QEasingCurve,
-    QPoint,
-    QPropertyAnimation,
-    Qt,
-    pyqtProperty,
-    pyqtSignal,
-)
-from PyQt6.QtGui import QColor, QPainter
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QPainter, QPen
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSizePolicy, QWidget
 
-from netwatch.ui import theme
 
-DOT_SIZE = 11
-PULSE_SIZE = 7
-
-
-class PulseDot(QWidget):
-    """The 7px accent square that pulses to show polling is live."""
-
-    def __init__(self, parent: QWidget | None = None) -> None:
+class TitleBarButton(QPushButton):
+    """Draws its own minimize/maximize/restore/close glyph — no icon files needed."""
+    def __init__(self, kind, parent=None):
         super().__init__(parent)
-        self.setFixedSize(PULSE_SIZE, PULSE_SIZE)
-        self._opacity = 1.0
+        self.kind = kind  # "min" | "max" | "restore" | "close"
+        self.setFixedSize(38, 32)
+        self.setFlat(True)
+        self.setStyleSheet(self._style())
 
-        self._anim = QPropertyAnimation(self, b"pulse", self)
-        self._anim.setDuration(2000)
-        self._anim.setStartValue(1.0)
-        self._anim.setKeyValueAt(0.5, 0.25)
-        self._anim.setEndValue(1.0)
-        self._anim.setEasingCurve(QEasingCurve.Type.InOutSine)
-        self._anim.setLoopCount(-1)
-        self._anim.start()
+    def _style(self):
+        hover = "#ef4444" if self.kind == "close" else "#26262b"
+        return f"""
+            QPushButton {{ background: transparent; border: none; }}
+            QPushButton:hover {{ background-color: {hover}; }}
+        """
 
-    @pyqtProperty(float)
-    def pulse(self) -> float:
-        return self._opacity
-
-    @pulse.setter
-    def pulse(self, value: float) -> None:
-        self._opacity = value
-        self.update()
-
-    def stop(self) -> None:
-        self._anim.stop()
-
-    def paintEvent(self, _event) -> None:
+    def paintEvent(self, event):
+        super().paintEvent(event)
         p = QPainter(self)
-        colour = QColor(theme.ACCENT)
-        colour.setAlphaF(self._opacity)
-        p.fillRect(self.rect(), colour)
-        p.end()
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        color = QColor("#f4f4f5") if not (self.kind == "close" and self.underMouse()) else QColor("#ffffff")
+        pen = QPen(color, 1.2)
+        p.setPen(pen)
+        cx, cy = self.width() / 2, self.height() / 2
+        s = 5  # half-size of glyph
+
+        if self.kind == "min":
+            p.drawLine(int(cx - s), int(cy), int(cx + s), int(cy))
+        elif self.kind == "max":
+            p.drawRect(int(cx - s), int(cy - s), int(s * 2), int(s * 2))
+        elif self.kind == "restore":
+            p.drawRect(int(cx - s + 3), int(cy - s), int(s * 2 - 3), int(s * 2 - 3))
+            p.drawRect(int(cx - s), int(cy - s + 3), int(s * 2 - 3), int(s * 2 - 3))
+        elif self.kind == "close":
+            p.drawLine(int(cx - s), int(cy - s), int(cx + s), int(cy + s))
+            p.drawLine(int(cx - s), int(cy + s), int(cx + s), int(cy - s))
 
 
 class TitleBar(QWidget):
@@ -66,100 +46,55 @@ class TitleBar(QWidget):
     maximise_requested = pyqtSignal()
     close_requested = pyqtSignal()
 
-    def __init__(self, interval_s: int = 2, parent: QWidget | None = None) -> None:
+    def __init__(self, interval_s: int, parent=None):
         super().__init__(parent)
-        self.setFixedHeight(40)
-        self.setAutoFillBackground(True)
-        self._drag_offset: QPoint | None = None
+        self.interval_s = interval_s
+        self.win = parent.window() if parent is not None else None
+        self.setFixedHeight(34)
+        self._drag_pos = None
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(16, 12, 16, 12)
-        layout.setSpacing(14)
+        layout.setContentsMargins(12, 0, 0, 0)
+        layout.setSpacing(0)
 
-        controls = QHBoxLayout()
-        controls.setSpacing(8)
-        for name, signal in (
-            ("winBtn", self.minimise_requested),
-            ("winBtn", self.maximise_requested),
-            ("winBtnClose", self.close_requested),
-        ):
-            btn = QPushButton(self)
-            btn.setObjectName(name if name == "winBtnClose" else "winBtn")
-            if name == "winBtnClose":
-                btn.setProperty("class", "close")
-            btn.setFixedSize(DOT_SIZE, DOT_SIZE)
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.clicked.connect(signal)
-            controls.addWidget(btn)
-        layout.addLayout(controls)
+        self.title = QLabel("NetWatch  |  per-app network monitor")
+        self.title.setStyleSheet("color:#d4d4d8; font-weight:600; font-size:12px;")
+        layout.addWidget(self.title)
 
-        brand = QLabel("NetWatch", self)
-        brand.setFont(theme.ui_font(9, 600, spacing=0.14))
-        brand.setStyleSheet(f"color: {theme.TEXT}; background: transparent;")
-        layout.addWidget(brand)
+        spacer = QWidget()
+        spacer.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
+        layout.addWidget(spacer)
 
-        tagline = QLabel("per-app network monitor", self)
-        tagline.setFont(theme.ui_font(9))
-        tagline.setStyleSheet(f"color: {theme.TEXT_MUTED}; background: transparent;")
-        layout.addWidget(tagline)
+        self.btn_min = TitleBarButton("min")
+        self.btn_max = TitleBarButton("max")
+        self.btn_close = TitleBarButton("close")
+        for b in (self.btn_min, self.btn_max, self.btn_close):
+            layout.addWidget(b)
 
-        layout.addStretch(1)
-
-        self._dot = PulseDot(self)
-        layout.addWidget(self._dot)
-
-        self._live = QLabel(f"LIVE · {interval_s}s", self)
-        self._live.setFont(theme.mono_font(8))
-        self._live.setStyleSheet(f"color: {theme.TEXT_MUTED}; background: transparent;")
-        layout.addWidget(self._live)
-
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-
-    def set_interval(self, seconds: int) -> None:
-        self._live.setText(f"LIVE · {seconds}s")
+        self.btn_min.clicked.connect(self.minimise_requested)
+        self.btn_max.clicked.connect(self.maximise_requested)
+        self.btn_close.clicked.connect(self.close_requested)
 
     def set_live(self, live: bool) -> None:
-        """Stop the pulse when polling stops, so the bar never lies."""
-        if live:
-            self._dot.show()
-        else:
-            self._dot.stop()
-            self._dot.hide()
+        """Update the title-bar tooltip when polling stops or resumes."""
+        self.setToolTip("Live monitoring" if live else "Monitoring stopped")
 
-    # — dragging a frameless window —
+    def _toggle_max(self):
+        self.maximise_requested.emit()
 
-    def mousePressEvent(self, event) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
-            window = self.window()
-            self._drag_offset = (
-                event.globalPosition().toPoint() - window.frameGeometry().topLeft()
+    # Drag-to-move since the OS title bar is gone
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and self.win is not None:
+            self._drag_pos = (
+                event.globalPosition().toPoint() - self.win.frameGeometry().topLeft()
             )
-            event.accept()
 
-    def mouseMoveEvent(self, event) -> None:
-        if self._drag_offset is None:
-            return
-        window = self.window()
-        if window.isMaximized():
-            # Dragging a maximised window restores it under the cursor.
-            window.showNormal()
-            self._drag_offset = QPoint(window.width() // 2, self.height() // 2)
-        window.move(event.globalPosition().toPoint() - self._drag_offset)
-        event.accept()
-
-    def mouseReleaseEvent(self, event) -> None:
-        self._drag_offset = None
-        event.accept()
-
-    def mouseDoubleClickEvent(self, event) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.maximise_requested.emit()
-            event.accept()
-
-    def paintEvent(self, _event) -> None:
-        p = QPainter(self)
-        p.fillRect(self.rect(), QColor(theme.BG_TITLE))
-        p.fillRect(
-            0, self.height() - 2, self.width(), 2, QColor(theme.BORDER_HARD)
-        )
-        p.end()
+    def mouseMoveEvent(self, event):
+        if (
+            self._drag_pos is not None
+            and event.buttons() == Qt.MouseButton.LeftButton
+            and self.win is not None
+        ):
+            self.win.move(event.globalPosition().toPoint() - self._drag_pos)

@@ -1,105 +1,58 @@
-"""The square block toggle, in sidebar (34x18) and detail (56x28) sizes."""
-
-from __future__ import annotations
-
-from PyQt6.QtCore import (
-    QEasingCurve,
-    QPropertyAnimation,
-    QSize,
-    Qt,
-    pyqtProperty,
-    pyqtSignal,
-)
+from PyQt6.QtCore import QEasingCurve, QPropertyAnimation, QRectF, Qt, pyqtProperty
 from PyQt6.QtGui import QColor, QPainter
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWidgets import QCheckBox
 
-from netwatch.ui import theme
-
-SMALL = (34, 18)
-LARGE = (56, 28)
-
-
-class BlockToggle(QWidget):
-    """Square track, square knob, knob slides on state change.
-
-    Emits ``toggled`` on click but does **not** change its own state: the
-    firewall decides whether the block actually happened. The owner calls
-    ``set_checked`` once it knows. That keeps the toggle from ever showing a
-    state the firewall doesn't have.
-    """
-
-    toggled = pyqtSignal(bool)
-
-    def __init__(self, large: bool = False, parent: QWidget | None = None) -> None:
+class ToggleSwitch(QCheckBox):
+    def __init__(self, parent=None, width=46, height=24):
         super().__init__(parent)
-        self._w, self._h = LARGE if large else SMALL
-        self._pad = 3 if large else 2
-        self._knob = self._h - self._pad * 2
-        self._checked = False
-        self._pos = 0.0  # 0 = left, 1 = right
-        self.setFixedSize(self._w, self._h)
+        self._w, self._h = width, height
+        self.setFixedSize(width, height)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-
-        self._anim = QPropertyAnimation(self, b"knob_pos", self)
-        self._anim.setDuration(120)
+        self._circle_pos = 3
+        self._anim = QPropertyAnimation(self, b"circle_pos", self)
+        self._anim.setDuration(160)
         self._anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self.stateChanged.connect(self._start_transition)
 
-    # — state —
+    def _start_transition(self, state):
+        end = self._w - self._h + 3 if state else 3
+        self._anim.stop()
+        self._anim.setStartValue(self._circle_pos)
+        self._anim.setEndValue(end)
+        self._anim.start()
 
-    def is_checked(self) -> bool:
-        return self._checked
+    def get_circle_pos(self):
+        return self._circle_pos
 
-    def set_checked(self, checked: bool, animate: bool = True) -> None:
-        if checked == self._checked:
-            return
-        self._checked = checked
-        target = 1.0 if checked else 0.0
-        if animate:
-            self._anim.stop()
-            self._anim.setStartValue(self._pos)
-            self._anim.setEndValue(target)
-            self._anim.start()
-        else:
-            self.knob_pos = target
-
-    @pyqtProperty(float)
-    def knob_pos(self) -> float:
-        return self._pos
-
-    @knob_pos.setter
-    def knob_pos(self, value: float) -> None:
-        self._pos = value
+    def set_circle_pos(self, pos):
+        self._circle_pos = pos
         self.update()
 
-    # — interaction —
+    circle_pos = pyqtProperty(float, fget=get_circle_pos, fset=set_circle_pos)
 
-    def mousePressEvent(self, event) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
-            event.accept()
-            # Report the state being asked for, not a state we've adopted.
-            self.toggled.emit(not self._checked)
-        else:
-            super().mousePressEvent(event)
+    def hitButton(self, pos):
+        return self.contentsRect().contains(pos)
 
-    def sizeHint(self) -> QSize:
-        return QSize(self._w, self._h)
-
-    # — painting —
-
-    def paintEvent(self, _event) -> None:
+    def paintEvent(self, event):
         p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, False)  # hard edges
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setPen(Qt.PenStyle.NoPen)
 
-        on = self._checked
-        track = QColor(theme.ACCENT if on else theme.BG_APP)
-        border = QColor(theme.ACCENT if on else theme.BORDER_CTRL)
-        knob = QColor(theme.TEXT if on else theme.TEXT_FAINT)
+        track_color = QColor("#ef4444") if self.isChecked() else QColor("#2b2b31")
+        p.setBrush(track_color)
+        p.drawRoundedRect(0, 0, self._w, self._h, self._h / 2, self._h / 2)
 
-        p.fillRect(self.rect(), track)
-        p.setPen(border)
-        p.drawRect(0, 0, self._w - 1, self._h - 1)
+        circle_d = self._h - 6
+        p.setBrush(QColor("#f4f4f5"))
+        p.drawEllipse(QRectF(self._circle_pos, 3, circle_d, circle_d))
 
-        travel = self._w - self._pad * 2 - self._knob
-        x = self._pad + travel * self._pos
-        p.fillRect(int(round(x)), self._pad, self._knob, self._knob, knob)
-        p.end()
+
+class BlockToggle(ToggleSwitch):
+    """Toggle used to block a process, with a larger detail-pane variant."""
+
+    def __init__(self, parent=None, large=False):
+        width, height = (54, 28) if large else (46, 24)
+        super().__init__(parent, width, height)
+
+    def set_checked(self, checked):
+        self.setChecked(checked)

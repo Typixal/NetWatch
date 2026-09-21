@@ -104,115 +104,127 @@ TABLE_COLUMNS = (130, -1, 80, 130, 110)
 
 
 def stylesheet() -> str:
-    """App-wide QSS. Widget-specific painting lives in the widgets."""
-    return f"""
-    QWidget {{
-        background: {BG_WINDOW};
-        color: {TEXT};
-    }}
+    """Return the app-wide dark stylesheet."""
+    return """
+QWidget {
+    background-color: #0d0d0f;
+    color: #d4d4d8;
+    font-family: "Segoe UI", "Consolas", sans-serif;
+    font-size: 13px;
+}
 
-    /* Labels sit on top of custom-painted rows, so they must not paint a
-       ground of their own — otherwise every label shows as a grey box. */
-    QLabel {{
-        background: transparent;
-    }}
+QMainWindow, #centralWidget {
+    background-color: #0d0d0f;
+}
 
-    QToolTip {{
-        background: {BG_TITLE};
-        color: {TEXT};
-        border: 1px solid {BORDER_HARD};
-        padding: 4px 6px;
-    }}
+/* Card / panel look */
+QFrame#card, QFrame#detailPanel {
+    background-color: #17171a;
+    border: 1px solid #26262b;
+    border-radius: 10px;
+    padding: 14px;
+}
 
-    /* — filter box — */
-    QLineEdit#filter {{
-        background: {BG_APP};
-        border: 1px solid {BORDER_HARD};
-        border-radius: 0;
-        color: {TEXT};
-        padding: 9px 10px;
-        selection-background-color: {ACCENT};
-    }}
-    QLineEdit#filter:focus {{
-        border-color: {BORDER_CTRL};
-    }}
+/* Stat header (ACTIVE CONNECTIONS, etc.) */
+QLabel[role="statLabel"] {
+    color: #7a7a82;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+QLabel[role="statValue"] {
+    color: #f4f4f5;
+    font-size: 26px;
+    font-weight: 700;
+}
+QLabel[role="statValueAlert"] {
+    color: #ef4444;
+    font-size: 26px;
+    font-weight: 700;
+}
 
-    /* — sidebar filter tabs — */
-    QPushButton#tab {{
-        background: transparent;
-        border: none;
-        border-right: 1px solid {BORDER_SOFT};
-        color: {TEXT_MUTED};
-        padding: 9px 0;
-    }}
-    QPushButton#tab:hover {{
-        color: {TEXT};
-    }}
-    QPushButton#tab:checked {{
-        background: {BG_ROW_SELECTED};
-        color: {TEXT};
-    }}
-    QPushButton#tab:last-child {{
-        border-right: none;
-    }}
+/* Process list rows */
+QListWidget {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+QListWidget::item {
+    padding: 12px 10px;
+    margin-bottom: 4px;
+    border-radius: 8px;
+}
+QListWidget::item:selected {
+    background-color: #1f1f24;
+    border: 1px solid #ef4444;
+}
+QListWidget::item:hover:!selected {
+    background-color: #1a1a1e;
+}
 
-    /* — row action buttons — */
-    QPushButton#rowAction {{
-        background: transparent;
-        border: 1px solid {BORDER_CTRL};
-        border-radius: 0;
-        color: {TEXT_DIM};
-        padding: 8px 12px;
-    }}
-    QPushButton#rowAction:hover {{
-        background: {ACCENT};
-        border-color: {ACCENT};
-        color: {TEXT};
-    }}
-    QPushButton#rowAction[blocked="true"] {{
-        background: {ACCENT};
-        border-color: {ACCENT};
-        color: {TEXT};
-    }}
-    QPushButton#rowAction[blocked="true"]:hover {{
-        background: {ACCENT_HOVER};
-        border-color: {ACCENT_HOVER};
-    }}
+/* Filter box */
+QLineEdit {
+    background-color: #17171a;
+    border: 1px solid #2b2b31;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #d4d4d8;
+}
+QLineEdit:focus {
+    border: 1px solid #ef4444;
+}
 
-    /* — window control buttons in the title bar — */
-    QPushButton#winBtn {{
-        background: {INACTIVE};
-        border: none;
-        border-radius: 0;
-    }}
-    QPushButton#winBtn:hover {{
-        background: {TEXT_DIM};
-    }}
-    QPushButton#winBtnClose:hover {{
-        background: {ACCENT};
-    }}
+/* Table (connections) */
+QTableWidget {
+    background-color: transparent;
+    gridline-color: #26262b;
+    border: none;
+}
+QHeaderView::section {
+    background-color: transparent;
+    color: #7a7a82;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    padding: 6px;
+}
+QTableWidget::item {
+    padding: 10px 6px;
+    border-bottom: 1px solid #1e1e22;
+}
 
-    /* — scrollbars: thin, square, unobtrusive — */
-    QScrollBar:vertical {{
-        background: transparent;
-        width: 10px;
-        margin: 0;
-    }}
-    QScrollBar::handle:vertical {{
-        background: {BORDER_HARD};
-        min-height: 30px;
-        border-radius: 0;
-    }}
-    QScrollBar::handle:vertical:hover {{
-        background: {BORDER_CTRL};
-    }}
-    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-        height: 0;
-    }}
-    QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
-        background: transparent;
-    }}
-    QScrollArea {{
-        border: none;
-    }}
-    """
+/* Buttons */
+QPushButton {
+    background-color: #1f1f24;
+    border: 1px solid #2b2b31;
+    border-radius: 6px;
+    padding: 6px 14px;
+    color: #d4d4d8;
+}
+QPushButton:hover {
+    background-color: #262629;
+}
+QPushButton#blockBtn {
+    background-color: #2a1214;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    font-weight: 600;
+}
+QPushButton#blockBtn:hover {
+    background-color: #ef4444;
+    color: #0d0d0f;
+}
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 8px;
+}
+QScrollBar::handle:vertical {
+    background: #2b2b31;
+    border-radius: 4px;
+    min-height: 24px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+"""
